@@ -3,12 +3,12 @@ const CACHE_NAME = "dennert-icon-v1";
 // Alle Dateien die offline verfügbar sein sollen
 const FILES_TO_CACHE = [
   "/",
-  "/index.html",
-  "/main.html",
-  "/css/CSS-test.css",
-  "/docs/2026-01-15_ Abnahme Fenster.pdf",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png"
+  "index.html",
+  "main.html",
+  "css/CSS-test.css",
+  "docs/2026-01-15_ Abnahme Fenster.pdf",
+  "icons/icon-192.png",
+  "icons/icon-512.png"
 ];
 
 // Installation: Dateien in Cache laden
@@ -42,9 +42,10 @@ self.addEventListener("fetch", event => {
       return cached || fetch(event.request).catch(() => {
         // Offline-Fallback für HTML-Seiten
         if (event.request.destination === "document") {
-          return caches.match("/index.html");
+          return caches.match("index.html");
         }
       });
     })
   );
+
 });
