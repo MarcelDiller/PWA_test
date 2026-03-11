@@ -17,7 +17,24 @@ const FILES_TO_CACHE = [
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(FILES_TO_CACHE);
+      
+      // Jede Datei einzeln testen
+      const results = FILES_TO_CACHE.map(url =>
+        fetch(url)
+          .then(res => {
+            if (!res.ok) {
+              console.error(`❌ FEHLER ${res.status}: ${url}`);
+            } else {
+              console.log(`✅ OK: ${url}`);
+            }
+            return cache.add(url).catch(() => {
+              console.error(`❌ Cache fehlgeschlagen: ${url}`);
+            });
+          })
+          .catch(err => console.error(`❌ Nicht erreichbar: ${url}`, err))
+      );
+
+      return Promise.allSettled(results);
     })
   );
   self.skipWaiting();
@@ -51,4 +68,5 @@ self.addEventListener("fetch", event => {
   );
 
 });
+
 
