@@ -125,16 +125,16 @@ const formSpec = {
 
   function renderZertifikatSection(section)
   {
-    const existing = document.getElementById(section.id);
-    if (existing) return; // verhindert doppeltes Rendern
-
     const wrap = el("div", { class: "notes", id: section.id });
+  
+  if (section.title) {
     wrap.appendChild(el("h3", { text: section.title }));
-    (section.paragraphs || []).forEach(p => {
-      wrap.appendChild(el("p", { text: p }));
-    });
+  }
+  (section.paragraphs || []).forEach(p => {
+    wrap.appendChild(el("p", { text: p }));
+  });
 
-    app.appendChild(wrap);
+  return wrap; 
   }
 
    //entfernt Zertifikat sections
@@ -144,16 +144,16 @@ const formSpec = {
   }
   //zeigt Notes aus JSon an
   function renderNotesSection(section) {
-    const existing = document.getElementById(section.id);
-    if (existing) return; // verhindert doppeltes Rendern
-
-    const wrap = el("div", { class: "notes", id: section.id });
+    const wrap = el("div", { class: "notes" });
+  
+  if (section.title) {
     wrap.appendChild(el("h3", { text: section.title }));
-    (section.paragraphs || []).forEach(p => {
-      wrap.appendChild(el("p", { text: p }));
-    });
+  }
+  (section.paragraphs || []).forEach(p => {
+    wrap.appendChild(el("p", { text: p }));
+  });
 
-    app.appendChild(wrap);
+  return wrap; 
   }
 
   function renderQuestionsSection(section) {
@@ -206,9 +206,15 @@ const formSpec = {
       ]);
       if (item.note === "QNG") {
         const qngSection = formSpec.sections.find(s => s.type === "QNG");
+        
         yesInput.addEventListener("change", () => {
-          renderZertifikatSection(qngSection);
+          // Erst entfernen falls vorhanden, dann neu anhängen
+          removeZertifikatSection(qngSection);
+          const rendered = renderNotesSection(qngSection); 
+          rendered.id = qngSection.id; // ID setzen damit remove funktioniert
+          app.appendChild(rendered);
         });
+        
         noInput.addEventListener("change", () => {
           removeZertifikatSection(qngSection);
         });
