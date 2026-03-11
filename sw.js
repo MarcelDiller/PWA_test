@@ -2,9 +2,8 @@ const CACHE_NAME = "dennert-icon-v1";
 
 // Alle Dateien die offline verfügbar sein sollen
 const FILES_TO_CACHE = [
-  "/",
   "index.html",
-  "main.html",
+  "Main.html",
   "css/CSS-index.css",
   "css/CSS-test.css",
   "docs/2026-01-15_ Abnahme Fenster.pdf",
@@ -68,5 +67,6 @@ self.addEventListener("fetch", event => {
   );
 
 });
+
 
 
