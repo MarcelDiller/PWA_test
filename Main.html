@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dennert ICON CHeckliste</title>
+  <link rel="stylesheet" href="css/CSS-test.css" />
+</head>
+<body>
+ <div class="page">
+  <div class="toolbar">
+
+  </div>
+
+  <div id="app"></div>
+</div>
+<!-- PDF Modal -->
+<div id="pdf-modal" class="modal-overlay">
+  <div class="modal-window">
+    <div class="modal-header">
+      <span id="pdf-modal-title" class="modal-title"></span>
+      <button onclick="closePdfModal()" class="modal-close">✕</button>
+    </div>
+    <iframe id="pdf-modal-frame" src="" class="modal-frame"></iframe>
+  </div>
+</div>
+<script>
+const formSpec = {
+  title: "Abnahmeprotokoll ICON Modul",
+
+  headerFields: [
+    { key: "project", label: "Bauvorhaben", value: "", width: "60%" },
+    { key: "monteur", label: "Monteur", value: "", width: "25%" },
+    { key: "controller", label: "Kontrolleur", value: "", width: "35%" },
+    { key: "inside", label: "Farbe Innen", value: "", width: "45%" },
+    { key: "outside", label: "Farbe außen.", value: "", width: "45%" },
+  ],
+
+  sections: [
+    {
+      type: "questions",
+      title: "Fenster/Außentür", // optional
+      pdf: "docs/2026-01-15_ Abnahme Fenster.pdf",
+      items: [
+        { id: "q01", nr: "01.", text: "Handelt es sich um ein QNG zertifiziertes Haus?", kind: "yesno", answer: null, note: "QNG", id: "QNG"},
+        { id: "q02", nr: "02.", text: "Fensterrahmen sind nach Prüfvorgaben ohne Mangel?", kind: "Mangel", answer: null, note: "" },
+        { id: "q03", nr: "03.", text: "Fensterflügel sind nach Prüfvorgaben ohne Mangel?", kind: "Mangel", answer: null, note: "" },
+        { id: "q04", nr: "04.", text: "Dichtungen sind nach Prüfvorgaben ohne Mangel?", kind: "Mangel", answer: null, note: "" },
+        { id: "q05", nr: "05.", text: "Scheiben sind nach Prüfvorgaben ohne Mangel ?", kind: "Mangel", answer: null, note: "" },
+        { id: "q06", nr: "06.", text: "Fenstergriffe sind nach Prüfvorgaben ohne Mangel ?", kind: "Mangel", answer: null, note: "" },
+        { id: "q07", nr: "07.", text: "Rollos/Rolloschienen sind nach Prüfvorgaben ohne Mangel ?", kind: "Mangel", answer: null, note: "" },
+        { id: "q08", nr: "08.", text: "Hauseingangstüre sind nach Prüfvorgaben ohne Mangel ?", kind: "Mangel", answer: null, note: "" },
+        { id: "q09", nr: "09.", text: "Nebeneingangstüre sind nach Prüfvorgaben ohne Mangel ?", kind: "Mangel", answer: null, note: "" },
+        { id: "q10", nr: "10.", text: "Raffstores sind nach Prüfvorgaben ohne Mangel ?", kind: "Mangel", answer: null, note: "" },
+        { id: "q11", nr: "11.", text: "Insektenschutz sind nach Prüfvorgaben ohne Mangel ?", kind: "Mangel", answer: null, note: "" },
+      ]
+    },
+    {
+      type: "notes",
+      title: "Bemerkung:",
+      paragraphs: [
+        "test",
+      ],
+    },
+    {
+      type: "QNG",
+      title: "QNG Haus:",
+      id:"QNG",
+      paragraphs: [
+        "Wir bestätigen ausschließlich die von der Firma DENNERT zur Verfügung gestellten Materialien verwendet zu haben und somit bei der Ausführung unserer Bauleistung die Anforderungen des QNG-Anforderungskatalogs (Anhangdokument 313 in der geltenden Fassung) erfüllt zu haben.",
+      ],
+    },
+  ],
+};
+  // Mini-Helper
+  // Erspart deuerndes neu erstellen der div elemente
+  //so muss der code nur 1 mal vorhanden sein
+  const el = (tag, attrs = {}, children = []) => {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") node.className = v;
+      else if (k === "text") node.textContent = v;
+      else node.setAttribute(k, v);
+    }
+    children.forEach((c) => node.appendChild(c));
+    return node;
+  };
+  const toolbar = document.querySelector(".toolbar");
+  const app = document.querySelector("#app");
+
+  function renderTitle(spec) {
+    return el("div", {}, [
+      el("h1", { class: "title", text: spec.title }),
+      el("div", { class: "subtitle", text: spec.subtitle }),
+    ]);
+  }
+
+  function renderHeader(spec) {
+    const grid = el("div", { class: "header-grid" });
+
+    spec.headerFields.forEach((f) => {
+      const wrap = el("div", { class: "hfield" });
+      wrap.appendChild(el("div", { class: "label", text: f.label + ":" }));
+      const box = el("input", { class: "box" });
+      box.style.width = f.width || "100%";
+      box.value = f.value ?? "";
+      wrap.appendChild(box);
+      grid.appendChild(wrap);
+    });
+
+    return el("div", {}, [
+      renderTitle(spec),
+      grid,
+      el("div", { class: "hr" }),
+    ]);
+  }
+  
+  function renderSection(section)
+  {
+    if (section.type === "notes") return renderNotesSection(section);
+    if (section.type === "questions") return renderQuestionsSection(section);
+    return el("div", { class: "section" }, [
+      el("div", { text: `Unbekannter Section-Typ: ${section.type}` })
+    ]);
+  }
+
+  function renderZertifikatSection(section)
+  {
+    const existing = document.getElementById(section.id);
+    if (existing) return; // verhindert doppeltes Rendern
+
+    const wrap = el("div", { class: "notes", id: section.id });
+    wrap.appendChild(el("h3", { text: section.title }));
+    (section.paragraphs || []).forEach(p => {
+      wrap.appendChild(el("p", { text: p }));
+    });
+
+    app.appendChild(wrap);
+  }
+
+   //entfernt Zertifikat sections
+  function removeZertifikatSection(section) {
+    const existing = document.getElementById(section.id);
+    if (existing) existing.remove();
+  }
+  //zeigt Notes aus JSon an
+  function renderNotesSection(section) {
+    const existing = document.getElementById(section.id);
+    if (existing) return; // verhindert doppeltes Rendern
+
+    const wrap = el("div", { class: "notes", id: section.id });
+    wrap.appendChild(el("h3", { text: section.title }));
+    (section.paragraphs || []).forEach(p => {
+      wrap.appendChild(el("p", { text: p }));
+    });
+
+    app.appendChild(wrap);
+  }
+
+  function renderQuestionsSection(section) {
+    const wrap = el("div", { class: "section section-questions" });
+    if (section.title) {
+      const titleEl = el("h2", { class: "section-title", text: section.title });
+      if (section.pdf) {
+        titleEl.classList.add("section-title-clickable");
+        titleEl.addEventListener("click", () => openPdfModal(section.title, section.pdf));
+      }
+      wrap.appendChild(titleEl);
+    }
+
+    const list = el("div", { class: "q-list" });
+    (section.items || []).forEach((item) => list.appendChild(renderQuestionsRow(item)));
+    list.appendChild(el("div", { class: "hr" }));
+    wrap.appendChild(list);
+
+    return wrap;
+  }
+
+  function renderQuestionsRow(item){
+    const row = el("div", { class: "q-row" });
+
+    // links: Nummer + Text
+    const left = el("div", { class: "q-left" }, [
+      el("div", { class: "q-nr", text: item.nr || "" }),
+      el("div", { class: "q-text", text: item.text || "" }),
+    ]);
+
+    // rechts: controls
+    const right = el("div", { class: "q-right" });
+
+    const isYesNo = item.kind === "yesno";
+    const isMangel = item.kind === "Mangel";
+
+    // Radios nur für yesno & mangel
+    if (isYesNo || isMangel) {
+      // Bei Mangel: Y/N links, Codes rechts daneben
+      const rowWrap = el("div", { class: isMangel ? "mangel-row" : "" });
+
+      const yn = el("div", { class: "yn" });
+
+      const yesInput = el("input", { type: "radio", name: item.id, value: "yes" });
+      const noInput  = el("input", { type: "radio", name: item.id, value: "no" });
+
+      const yes = el("label", { class: "yn-btn" }, [
+        yesInput,
+        el("span", { text: "Ja" }),
+      ]);
+      if (item.note === "QNG") {
+        const qngSection = formSpec.sections.find(s => s.type === "QNG");
+        yesInput.addEventListener("change", () => {
+          renderZertifikatSection(qngSection);
+        });
+        noInput.addEventListener("change", () => {
+          removeZertifikatSection(qngSection);
+        });
+      }
+      const no = el("label", { class: "yn-btn" }, [
+        noInput,
+        el("span", { text: "Nein" }),
+      ]);
+
+      // initial
+      if (item.answer === true || item.answer === "yes") yesInput.checked = true;
+      if (item.answer === false || item.answer === "no") noInput.checked = true;
+
+      yn.appendChild(yes);
+      yn.appendChild(no);
+
+      rowWrap.appendChild(yn);
+
+      // Codes nur bei Mangel
+      if (isMangel) {
+        item.codes ??= { bereich: "", raum: "", objekt: "", mangel: "" };
+
+        const codes = el("div", { class: "codes" });
+
+        const mkCode = (key, label) => {
+          const wrap = el("div", { class: "code-col" });
+          wrap.appendChild(el("div", { class: "code-label", text: label }));
+
+          const input = el("input", {
+            class: "code-input",
+            type: "text",
+            maxlength: "2",
+            placeholder: "XX",
+          });
+
+          input.value = item.codes[key] || "";
+
+          input.addEventListener("input", () => {
+            input.value = input.value.toUpperCase().slice(0, 2);
+            item.codes[key] = input.value;
+          });
+
+          wrap.appendChild(input);
+          return wrap;
+        };
+
+        codes.appendChild(mkCode("bereich", "Bereich"));
+        codes.appendChild(mkCode("raum", "Raum"));
+        codes.appendChild(mkCode("objekt", "Objekt"));
+        codes.appendChild(mkCode("mangel", "Mangel"));
+
+        // Sichtbarkeit: NUR wenn "Nein" (Mangel) ausgewählt ist
+        const setCodesVisible = () => {
+          const show = noInput.checked;
+          codes.style.display = show ? "grid" : "none";
+        };
+
+        yesInput.addEventListener("change", () => {
+          item.answer = true;
+          setCodesVisible();
+        });
+
+        noInput.addEventListener("change", () => {
+          item.answer = false;
+          setCodesVisible();
+        });
+
+        setCodesVisible();
+
+        // ➡️ Codes NICHT in rowWrap, sondern direkt in row (als eigene Zeile unten)
+        row.__mangelCodes = codes; // merken für später
+      } else {
+        // yesno: normales Speichern
+        yesInput.addEventListener("change", () => (item.answer = true));
+        noInput.addEventListener("change", () => (item.answer = false));
+      }
+
+      right.appendChild(rowWrap);
+    }
+
+    // Fallback: andere kinds bekommen KEINE Radios
+    if (!isYesNo && !isMangel) {
+      const input = el("input", {
+        class: "q-fallback",
+        type: "text",
+        placeholder: "Antwort...",
+      });
+      input.value = item.answer ?? "";
+      input.addEventListener("input", () => (item.answer = input.value));
+      right.appendChild(input);
+    }
+
+    const top = el("div", { class: "q-row-top" });
+    top.appendChild(left);
+    top.appendChild(right);
+    row.appendChild(top);
+    // Mangel-Codes unter der ganzen Zeile einfügen
+    if (item.kind === "Mangel") {
+      row.appendChild(row.__mangelCodes);
+      delete row.__mangelCodes;
+    }
+    return row;
+  }
+
+  // Haupt-Render: view = header | notes | questions | all
+  function render(spec, view = "all") {
+    app.innerHTML = "";
+
+    const header = renderHeader(spec);
+    // all
+    app.appendChild(header);
+    let sectionsToRender = spec.sections;
+
+    if (view !== "all") {
+      // 1) Wenn view ein type ist (questions/notes)
+      const byType = spec.sections.filter((s) => s.type === view);
+      if (byType.length) sectionsToRender = byType;
+
+      // 2) Oder wenn view eine konkrete section-id ist
+      const byId = spec.sections.filter((s) => s.id === view);
+      if (byId.length) sectionsToRender = byId;
+    }
+
+    sectionsToRender.forEach((section) => app.appendChild(renderSection(section)));
+  }
+  
+//navigation buttons
+formSpec.sections.forEach(section => {
+  if(section.type !== "QNG"){
+    const btn = el("button", {
+      class: "nav-btn",
+      text: section.title || section.type
+    });
+
+    btn.dataset.view = section.type;
+
+    btn.addEventListener("click", () => {
+      render(formSpec, btn.dataset.view);
+    });
+
+    toolbar.appendChild(btn);
+  }
+});
+//pdf pop up für vorgang etc
+function openPdfModal(title, pdfPath) {
+  document.getElementById("pdf-modal-title").textContent = title;
+  document.getElementById("pdf-modal-frame").src = pdfPath;
+  const modal = document.getElementById("pdf-modal");
+  modal.style.display = "flex";
+}
+
+function closePdfModal() {
+  document.getElementById("pdf-modal").style.display = "none";
+  document.getElementById("pdf-modal-frame").src = "";
+}
+
+document.getElementById("pdf-modal").addEventListener("click", function(e) {
+  if (e.target === this) closePdfModal();
+});
+  // initial
+  render(formSpec, "all");
+</script>
+</body>
+</html>
