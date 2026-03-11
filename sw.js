@@ -5,10 +5,12 @@ const FILES_TO_CACHE = [
   "/",
   "index.html",
   "main.html",
+  "css/CSS-index.css",
   "css/CSS-test.css",
   "docs/2026-01-15_ Abnahme Fenster.pdf",
   "icons/icon-192.png",
-  "icons/icon-512.png"
+  "icons/icon-512.png",
+  "Bilder/dennert-logo.png"
 ];
 
 // Installation: Dateien in Cache laden
@@ -49,3 +51,4 @@ self.addEventListener("fetch", event => {
   );
 
 });
+
