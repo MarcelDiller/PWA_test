@@ -136,9 +136,9 @@ const formSpec = {
   {
     if (section.type === "notes") return renderNotesSection(section);
     if (section.type === "questions") return renderQuestionsSection(section);
-    /*return el("div", { class: "section" }, [
+    return el("div", { class: "section" }, [
       el("div", { text: `Unbekannter Section-Typ: ${section.type}` })
-    ]);*/
+    ]);
   }
 
   function renderZertifikatSection(section)
