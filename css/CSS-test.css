@@ -1,4 +1,325 @@
+/* Inputs sollen sich wie "Boxen" verhalten */
+input:not([type="radio"]):not([type="checkbox"]), textarea {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+  margin: 0;
+  width: 100%;
+}
 
+:root {
+  --ink: #111;
+  --muted: #666;
+  --line: #222;
+  --gray: #d9d9d9;
+  --field: #dfe6ff;
+  --bg: #fff;
+  --pad: 14px;
+  --radius: 4px;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #2e3745; color: var(--ink); }
+.page { max-width: 980px; margin: 24px auto; background: var(--bg); padding: 22px; border-radius: 10px; box-shadow: 0 6px 22px rgba(0,0,0,.08); }
+
+.toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.toolbar button {
+  border: 1px solid #cfd3dc; background: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer;
+}
+.toolbar button.primary { background: #111; color: #fff; border-color: #111; }
+
+.title {
+  font-weight: 800;
+  font-size: 40px;
+  letter-spacing: .2px;
+  margin: 0;
+}
+.subtitle {
+  font-weight: 800;
+  font-size: 34px;
+  margin: 4px 0 16px 0;
+}
+
+.header-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 28px;
+  align-items: end;
+}
+
+.hfield {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.hfield .label { color: var(--ink); font-weight: 600; }
+.hfield .box {
+  height: 26px;
+  background: var(--field);
+  border-radius: var(--radius);
+  border: 1px solid #c7d1ff;
+  padding: 3px 8px;
+  font-size: 14px;
+}
+
+.hr {
+  height: 3px;
+  background: var(--line);
+  margin: 14px 0 16px;
+}
+
+.notes {
+  border: 1px solid #cfd3dc;
+  border-radius: 10px;
+  padding: 14px;
+}
+.notes h3 { margin: 0 0 10px 0; }
+.notes p { margin: 0 0 8px 0; color: var(--ink); }
+
+/* ===== Questions Layout ===== */
+.q-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+/* Obere Zeile: Nummer + Text + Ja/Nein nebeneinander */
+.q-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+}
+
+.q-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.q-right {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 14px;
+}
+
+/* ===== Ja / Nein "Radio Buttons" als Buttons ===== */
+.yn { display: flex; gap: 10px; align-items: center; }
+
+.yn-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  padding: 6px 16px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 700;
+  min-width: 70px;
+}
+
+/* echte Radios unsichtbar (aber zugänglich) */
+.yn-btn input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Visuelles Feedback wenn ausgewählt */
+.yn-btn:has(input[type="radio"]:checked) {
+  background: var(--field);
+}
+
+/* ===== 4 Code Felder bei Mangel ===== */
+.mangel-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: nowrap;
+}
+
+.codes {
+  display: grid;
+  grid-template-columns: repeat(4, auto); /* Breite passt sich dem Inhalt an */
+  gap: 10px;
+  align-items: end;
+  margin-left: 54px;
+  margin-top: 4px;
+}
+
+.code-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.code-label {
+  text-align: center;
+  border: 2px solid var(--line);
+  background: var(--field);
+  border-radius: var(--radius);
+  padding: 3px 6px;
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.code-input {
+  border: 2px solid var(--line);
+  background: var(--field);
+  border-radius: var(--radius);
+  padding: 6px 0;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 1px;
+  width: 100%;
+}
+
+/* ===== Custom Dropdown ===== */
+.code-dropdown-wrap {
+  position: relative;
+  display: inline-block; /* Breite passt sich dem Inhalt an */
+}
+
+.custom-select {
+  display: inline-block;
+  padding: 6px 24px 6px 8px; /* Rechts Platz für Pfeil */
+  cursor: pointer;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background-color: var(--field);
+  font: inherit;
+  font-weight: 800;
+  font-size: 13px;
+  white-space: nowrap;
+  position: relative;
+  user-select: none;
+  min-width: 60px;
+}
+
+/* Pfeil-Symbol rechts */
+.custom-select::after {
+  content: "▾";
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.custom-options {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  min-width: 100%;     /* Mindestens so breit wie der Button */
+  width: max-content;  /* Breiter wenn der Text es erfordert */
+  max-height: 200px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background-color: var(--bg);
+  overflow-y: auto;
+  display: none;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.custom-option {
+  padding: 7px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap; /* Kein Zeilenumbruch → Breite passt sich an */
+}
+
+.custom-option:hover {
+  background-color: var(--field);
+}
+
+/* ===== PDF Modal ===== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-window {
+  background: #fff;
+  border-radius: 10px;
+  width: 85vw;
+  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 2px solid #222;
+}
+
+.modal-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.modal-close {
+  border: 2px solid #222;
+  background: #fff;
+  border-radius: 4px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.modal-close:hover {
+  background: #111;
+  color: #fff;
+}
+
+.modal-frame {
+  flex: 1;
+  border: none;
+  width: 100%;
+}
+
+.section-title-clickable {
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+
+.section-title-clickable:hover {
+  opacity: 0.7;
+}
+/* ===== Trennlinie zwischen Mangel-Sets ===== */
+.mangel-divider {
+  grid-column: 1 / -1;
+  height: 2px;
+  background: var(--gray);
+  margin: 6px 0 2px;
+  margin-left: 54px;
+}
 /* Inputs sollen sich wie "Boxen" verhalten */
 input:not([type="radio"]):not([type="checkbox"]), textarea {
   font: inherit;
