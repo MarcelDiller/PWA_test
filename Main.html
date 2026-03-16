@@ -71,6 +71,24 @@ const formSpec = {
     },
   ],
 };
+
+// Codes nur bei Mangel
+      // ──────────────────────────────────────────────────────────────────
+      const CODE_OPTIONS = {
+        bereich: [
+          "1 - Keller",
+        ],
+        raum: [
+          "1 - Außen allgemein",
+        ],
+        objekt: [
+          "1 - Außenputz",
+        ],
+        mangel: [
+          "1 - Beschädigt",
+        ],
+      };
+      // ─────────────────────────────────────────────────────────────────
   // Mini-Helper
   // Erspart deuerndes neu erstellen der div elemente
   //so muss der code nur 1 mal vorhanden sein
@@ -118,9 +136,9 @@ const formSpec = {
   {
     if (section.type === "notes") return renderNotesSection(section);
     if (section.type === "questions") return renderQuestionsSection(section);
-    return el("div", { class: "section" }, [
+    /*return el("div", { class: "section" }, [
       el("div", { text: `Unbekannter Section-Typ: ${section.type}` })
-    ]);
+    ]);*/
   }
 
   function renderZertifikatSection(section)
@@ -232,64 +250,26 @@ const formSpec = {
       yn.appendChild(no);
 
       rowWrap.appendChild(yn);
-
-      // Codes nur bei Mangel
       if (isMangel) {
-        item.codes ??= { bereich: "", raum: "", objekt: "", mangel: "" };
+        item.codesList = []; // Reset beim neu Rendern
+        const codesContainer = el("div", { class: "codes-container" });
 
-        const codes = el("div", { class: "codes" });
+        // Erste leere Zeile sofort einfügen
+        CheckAndAddMangel(item, codesContainer);
 
-        const mkCode = (key, label) => {
-          const wrap = el("div", { class: "code-col" });
-          wrap.appendChild(el("div", { class: "code-label", text: label }));
-
-          const input = el("input", {
-            class: "code-input",
-            type: "text",
-            maxlength: "2",
-            placeholder: "XX",
-          });
-
-          input.value = item.codes[key] || "";
-
-          input.addEventListener("input", () => {
-            input.value = input.value.toUpperCase().slice(0, 2);
-            item.codes[key] = input.value;
-          });
-
-          wrap.appendChild(input);
-          return wrap;
-        };
-
-        codes.appendChild(mkCode("bereich", "Bereich"));
-        codes.appendChild(mkCode("raum", "Raum"));
-        codes.appendChild(mkCode("objekt", "Objekt"));
-        codes.appendChild(mkCode("mangel", "Mangel"));
-
-        // Sichtbarkeit: NUR wenn "Nein" (Mangel) ausgewählt ist
         const setCodesVisible = () => {
           const show = noInput.checked;
-          codes.style.display = show ? "grid" : "none";
+          codesContainer.style.display = show ? "block" : "none";
         };
 
-        yesInput.addEventListener("change", () => {
-          item.answer = true;
-          setCodesVisible();
-        });
-
-        noInput.addEventListener("change", () => {
-          item.answer = false;
-          setCodesVisible();
-        });
-
+        yesInput.addEventListener("change", () => { item.answer = true;  setCodesVisible(); });
+        noInput.addEventListener ("change", () => { item.answer = false; setCodesVisible(); });
         setCodesVisible();
 
-        // ➡️ Codes NICHT in rowWrap, sondern direkt in row (als eigene Zeile unten)
-        row.__mangelCodes = codes; // merken für später
+        row.__mangelCodes = codesContainer; 
       } else {
-        // yesno: normales Speichern
         yesInput.addEventListener("change", () => (item.answer = true));
-        noInput.addEventListener("change", () => (item.answer = false));
+        noInput.addEventListener ("change", () => (item.answer = false));
       }
 
       right.appendChild(rowWrap);
@@ -317,6 +297,53 @@ const formSpec = {
       delete row.__mangelCodes;
     }
     return row;
+  }
+  function CheckAndAddMangel(item, codesContainer) {
+    // Erstellt eine neue Zeile mit 4 Dropdowns
+    const rowEl = el("div", { class: "codes" });
+    const entryIndex = (item.codesList ??= []).length;
+    item.codesList.push({ bereich: "", raum: "", objekt: "", mangel: "" });
+
+    let filledCount = 0; // Zählt wie viele Dropdowns ausgefüllt wurden
+
+    ["bereich", "raum", "objekt", "mangel"].forEach((key) => {
+      const labels = { bereich: "Bereich", raum: "Raum", objekt: "Objekt", mangel: "Mangel" };
+      const wrap = el("div", { class: "code-col" });
+      wrap.appendChild(el("div", { class: "code-label", text: labels[key] }));
+
+      const container = el("div", { class: "code-dropdown-wrap" });
+      const button = el("div");
+      const optionsContainer = el("div");
+
+      customdropdown(
+        "Wählen",
+        CODE_OPTIONS[key],
+        optionsContainer,
+        button,
+        container
+      );
+
+      // Beim Auswählen: Wert speichern + ggf. neue Zeile anfügen
+      optionsContainer.addEventListener("click", (e) => {
+        if (e.target.classList.contains("custom-option")) {
+          const wasEmpty = item.codesList[entryIndex][key] === "";
+          item.codesList[entryIndex][key] = e.target.textContent;
+
+          if (wasEmpty) {
+            filledCount++;
+            // Erst beim ERSTEN ausgefüllten Dropdown dieser Zeile → neue Zeile anhängen
+            if (filledCount === 1) {
+              CheckAndAddMangel(item, codesContainer);
+            }
+          }
+        }
+      });
+      wrap.appendChild(container);
+      rowEl.appendChild(wrap);
+    });
+    const divider = el("div", { class: "mangel-divider" });
+    codesContainer.appendChild(rowEl);
+    codesContainer.appendChild(divider);
   }
 
   // Haupt-Render: view = header | notes | questions | all
@@ -374,6 +401,41 @@ function closePdfModal() {
 document.getElementById("pdf-modal").addEventListener("click", function(e) {
   if (e.target === this) closePdfModal();
 });
+
+//dropdown menü direkt geholt aus Custom_Dropdown projekt
+function customdropdown(standartwert, Auswahl,optionsContainer,button,container){
+            button.classList.add("custom-select");
+            button.textContent = standartwert; // Standardwert
+            container.appendChild(button);
+
+            optionsContainer.classList.add("custom-options");
+            container.appendChild(optionsContainer);
+            //erstellt elemente der Classe custom-option welche in optionsContainer angefügt werden
+            Auswahl.forEach(
+                function dropdowninhalt(inhalt){
+                let option = document.createElement("div");
+                option.classList.add("custom-option");
+                option.textContent = `${inhalt}`;
+                option.addEventListener("click", () => {
+                        button.textContent = option.textContent;
+                        optionsContainer.style.display = "none";
+                    });
+                    optionsContainer.appendChild(option);
+                }
+            )
+            // Dropdown ein-/ausblenden
+            button.addEventListener("click", () => {
+                optionsContainer.style.display = optionsContainer.style.display === "block" ? "none" : "block";
+            });
+
+            // Dropdown schließen, wenn außerhalb geklickt wird
+            document.addEventListener("click", (e) => {
+                if (!button.contains(e.target)) {
+                    optionsContainer.style.display = "none";
+                }
+            });
+        }
+
   // initial
   render(formSpec, "all");
 </script>
