@@ -225,6 +225,7 @@ const formSpec = {
 
       const yesInput = el("input", { type: "radio", name: item.id, value: "yes" });
       const noInput  = el("input", { type: "radio", name: item.id, value: "no" });
+      const notApplicable  = el("input", { type: "radio", name: item.id, value: "N/A" });
 
       const yes = el("label", { class: "yn-btn" }, [
         yesInput,
@@ -249,6 +250,10 @@ const formSpec = {
         noInput,
         el("span", { text: "Nein" }),
       ]);
+      const NA = el("label", { class: "yn-btn" }, [
+        notApplicable,
+        el("span", { text: "N/A" }),
+      ]);
 
       // initial
       if (item.answer === true || item.answer === "yes") yesInput.checked = true;
@@ -256,6 +261,7 @@ const formSpec = {
 
       yn.appendChild(yes);
       yn.appendChild(no);
+      yn.appendChild(NA);
 
       rowWrap.appendChild(yn);
       if (isMangel) {
