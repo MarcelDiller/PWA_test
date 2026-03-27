@@ -144,6 +144,7 @@ const formSpec = {
   {
     if (section.type === "notes") return renderNotesSection(section);
     if (section.type === "questions") return renderQuestionsSection(section);
+    if (section.type === "QNG") return;
     return el("div", { class: "section" }, [
       el("div", { text: `Unbekannter Section-Typ: ${section.type}` })
     ]);
