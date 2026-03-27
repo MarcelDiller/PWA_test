@@ -357,6 +357,7 @@ const formSpec = {
       rowEl.appendChild(wrap);
     });
     const input = el("input", {class: "mangel-note"});
+    input.placeholder = "Notiz";
     const divider = el("div", { class: "mangel-divider" });
     rowEl.appendChild(input);
     codesContainer.appendChild(rowEl);
