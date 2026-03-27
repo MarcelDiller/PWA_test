@@ -3,7 +3,7 @@ input:not([type="radio"]):not([type="checkbox"]), textarea {
   font: inherit;
   color: inherit;
   background: transparent;
-  border: 1px;
+  border: 1px solid;
   outline: none;
   margin: 0;
   width: 100%;
