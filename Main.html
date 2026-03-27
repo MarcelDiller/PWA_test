@@ -277,6 +277,7 @@ const formSpec = {
         };
 
         yesInput.addEventListener("change", () => { item.answer = true;  setCodesVisible(); });
+        notApplicable.addEventListener("change", () => { item.answer = true;  setCodesVisible(); });
         noInput.addEventListener ("change", () => { item.answer = false; setCodesVisible(); });
         setCodesVisible();
 
@@ -355,7 +356,9 @@ const formSpec = {
       wrap.appendChild(container);
       rowEl.appendChild(wrap);
     });
+    const input = el("input", {class: "mangel-note"});
     const divider = el("div", { class: "mangel-divider" });
+    rowEl.appendChild(input);
     codesContainer.appendChild(rowEl);
     codesContainer.appendChild(divider);
   }
