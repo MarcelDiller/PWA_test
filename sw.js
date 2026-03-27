@@ -1,6 +1,5 @@
-const CACHE_NAME = "dennert-icon-v1";
+const CACHE_NAME = "dennert-icon-v2"; // ← Bei jedem Deploy erhöhen!
 
-// Alle Dateien die offline verfügbar sein sollen
 const FILES_TO_CACHE = [
   "index.html",
   "Main.html",
@@ -12,12 +11,10 @@ const FILES_TO_CACHE = [
   "Bilder/dennert-logo.png"
 ];
 
-// Installation: Dateien in Cache laden
+// Installation
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      
-      // Jede Datei einzeln testen
       const results = FILES_TO_CACHE.map(url =>
         fetch(url)
           .then(res => {
@@ -32,7 +29,6 @@ self.addEventListener("install", event => {
           })
           .catch(err => console.error(`❌ Nicht erreichbar: ${url}`, err))
       );
-
       return Promise.allSettled(results);
     })
   );
@@ -53,20 +49,32 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
-// Fetch: Cache First Strategie
+// Fetch: Hybrid-Strategie
 self.addEventListener("fetch", event => {
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request).catch(() => {
-        // Offline-Fallback für HTML-Seiten
-        if (event.request.destination === "document") {
-          return caches.match("index.html");
-        }
-      });
-    })
-  );
+  const url = new URL(event.request.url);
+  const isCSSorJS = url.pathname.match(/\.(css|js)$/);
 
+  if (isCSSorJS) {
+    // CSS & JS: Netzwerk zuerst → immer aktuelle Styles
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+  } else {
+    // HTML, Bilder, PDFs: Cache First → schnell & offline-fähig
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        return cached || fetch(event.request).catch(() => {
+          if (event.request.destination === "document") {
+            return caches.match("index.html");
+          }
+        });
+      })
+    );
+  }
 });
-
-
-
