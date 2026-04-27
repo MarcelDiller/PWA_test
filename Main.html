@@ -13,6 +13,7 @@
   <meta name="apple-mobile-web-app-title" content="ICON" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+  <script src="sharepoint.js"></script>
 </head>
 <body>
  <div class="page">
@@ -113,6 +114,10 @@ const formSpec = {
   };
   const toolbar = document.querySelector(".toolbar");
   const app = document.querySelector("#app");
+
+  async function handleUpload() {
+   
+  }
 
   function renderTitle(spec) {
     return el("div", {}, [
@@ -360,8 +365,11 @@ const formSpec = {
     });
     const input = el("input", {class: "mangel-note"});
     input.placeholder = "Notiz";
+    const file_input = el("input",{class: "mangel-file",type:"file",accept: "image/*"});
+    file_input.placeholder = "datei upload";
     const divider = el("div", { class: "mangel-divider" });
     rowEl.appendChild(input);
+    rowEl.appendChild(file_input);
     codesContainer.appendChild(rowEl);
     codesContainer.appendChild(divider);
   }
