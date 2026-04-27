@@ -3,6 +3,7 @@ const CACHE_NAME = "dennert-icon-v2"; // ← Bei jedem Deploy erhöhen!
 const FILES_TO_CACHE = [
   "index.html",
   "Main.html",
+  "sharepoint.js",
   "css/CSS-index.css",
   "css/CSS-test.css",
   "docs/2026-01-15_ Abnahme Fenster.pdf",

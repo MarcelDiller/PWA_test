@@ -38,28 +38,14 @@ async function getToken() {
 // ==============================
 // Upload-Funktion
 // ==============================
-async function uploadImageToSharePoint(file) {
-  try {
-    const token = await getToken();
-    const url = `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT.siteId}/drives/${SHAREPOINT.driveId}/root:/${SHAREPOINT.uploadFolder}/${file.name}:/content`;
-
-    const response = await fetch(url, {
-      method: "PUT",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": file.type
-      },
-      body: file
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      alert("✅ Bild erfolgreich hochgeladen: " + data.name);
-    } else {
-      alert("❌ Fehler beim Upload: " + response.statusText);
-    }
-  } catch (err) {
-    console.error(err);
-    alert("❌ Fehler: " + err.message);
-  }
+async function uploadImageToSharePoint(file, filename) {
+  const token = await getToken();
+  // filename direkt verwenden — kommt fertig aus Main.html
+  const url = `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT.siteId}/drives/${SHAREPOINT.driveId}/root:/Uploads/${filename}:/content`;
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: { "Authorization": `Bearer ${token}`, "Content-Type": file.type },
+    body: file
+  });
+  if (!response.ok) throw new Error(response.statusText);
 }
