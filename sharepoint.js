@@ -39,17 +39,33 @@ async function getToken() {
 // Upload-Funktion
 // ==============================
 async function uploadImageToSharePoint(file, filename) {
-  const token = await getToken();
-  const url = `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT.siteId}/drives/${SHAREPOINT.driveId}/root:/upload_test/${filename}:/content`;
+  console.log("1. Upload gestartet:", filename);
   
-  const response = await fetch(url, {
-    method: "PUT",
-    headers: { "Authorization": `Bearer ${token}`, "Content-Type": file.type },
-    body: file
-  });
+  try {
+    const token = await getToken();
+    console.log("2. Token erhalten:", token ? "OK" : "LEER");
 
-  if (!response.ok) {
-    const errorBody = await response.json(); // ← Antwort von SharePoint lesen
-    throw new Error(JSON.stringify(errorBody));
+    const url = `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT.siteId}/drives/${SHAREPOINT.driveId}/root:/upload_test/${filename}:/content`;
+    console.log("3. URL:", url);
+
+    const response = await fetch(url, {
+      method: "PUT",
+      headers: { "Authorization": `Bearer ${token}`, "Content-Type": file.type },
+      body: file
+    });
+
+    console.log("4. Response Status:", response.status, response.statusText);
+
+    if (!response.ok) {
+      const errorBody = await response.text(); // text() statt json() — sicherer
+      console.log("5. Fehler Body:", errorBody);
+      throw new Error(errorBody);
+    }
+
+    console.log("6. Upload erfolgreich!");
+
+  } catch (err) {
+    console.log("CATCH Fehler:", err);
+    throw err; // wichtig: weiterwerfen damit Main.html es anzeigt
   }
 }

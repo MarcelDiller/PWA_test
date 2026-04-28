@@ -1,4 +1,4 @@
-const CACHE_NAME = "dennert-icon-v6"; // ← Bei jedem Deploy erhöhen!
+const CACHE_NAME = "dennert-icon-v7"; // ← Bei jedem Deploy erhöhen!
 
 const FILES_TO_CACHE = [
   "index.html",
