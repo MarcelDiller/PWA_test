@@ -40,12 +40,16 @@ async function getToken() {
 // ==============================
 async function uploadImageToSharePoint(file, filename) {
   const token = await getToken();
-  // filename direkt verwenden — kommt fertig aus Main.html
-  const url = `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT.siteId}/drives/${SHAREPOINT.driveId}/root:/Uploads/${filename}:/content`;
+  const url = `https://graph.microsoft.com/v1.0/sites/${SHAREPOINT.siteId}/drives/${SHAREPOINT.driveId}/root:/upload_test/${filename}:/content`;
+  
   const response = await fetch(url, {
     method: "PUT",
     headers: { "Authorization": `Bearer ${token}`, "Content-Type": file.type },
     body: file
   });
-  if (!response.ok) throw new Error(response.statusText);
+
+  if (!response.ok) {
+    const errorBody = await response.json(); // ← Antwort von SharePoint lesen
+    throw new Error(JSON.stringify(errorBody));
+  }
 }
