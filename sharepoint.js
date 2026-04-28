@@ -5,7 +5,7 @@ const MSAL_CONFIG = {
   auth: {
     clientId: "4eed9e38-1449-40e6-8401-65da4ba5d8f1",       // aus Schritt 1
     authority: "https://login.microsoftonline.com/74149779-0882-42d4-a001-eee89391dd43",
-    redirectUri: "https://marceldiller.github.io/PWA_test/"
+    redirectUri: "https://marceldiller.github.io/PWA_test"
   }
 };
 
