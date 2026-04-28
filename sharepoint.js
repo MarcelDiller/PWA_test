@@ -10,8 +10,8 @@ const MSAL_CONFIG = {
 };
 
 const SHAREPOINT = {
-  siteId: "DEINE_SITE_ID",    // siehe unten wie du das findest
-  driveId: "DEINE_DRIVE_ID",  // die Document Library
+  siteId: "veitdennert.sharepoint.com,66d54210-e567-4a1b-b9d3-6731cf68f49f,3ac680c1-4fc0-4b2d-889c-d732e25c4a0bD",    // siehe unten wie du das findest
+  driveId: "b!EELVZmflG0q502cxz2j0n8GAxjrATy1LiJzXMuJcSgurFC8gbd-dS4-1FyKPwrVR",  // die Document Library
   uploadFolder: "Upload_test" // Ordner in SharePoint
 };
 

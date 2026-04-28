@@ -33,6 +33,10 @@
     <iframe id="pdf-modal-frame" src="" class="modal-frame"></iframe>
   </div>
 </div>
+<div id="upload-section">
+  <button id="btn-upload" onclick="handleUpload()">Alles hochladen</button>
+  <div id="upload-log"></div>
+</div>
 <script>
 const formSpec = {
   title: "Abnahmeprotokoll ICON Modul",
@@ -116,7 +120,57 @@ const formSpec = {
   const app = document.querySelector("#app");
 
   async function handleUpload() {
-   
+   const log = document.getElementById("upload-log");
+    const btn = document.getElementById("btn-upload");
+    log.innerHTML = "";
+
+    // Alle file-inputs einsammeln
+    const inputs = document.querySelectorAll(".mangel-file");
+    const uploads = [];
+
+    inputs.forEach(input => {
+      if (!input.files || input.files.length === 0) return;
+      uploads.push({
+        file: input.files[0],
+        sectionTitle: input.dataset.sectionTitle || "Unbekannt",
+        itemNr: input.dataset.itemNr || "00"
+      });
+    });
+
+    if (uploads.length === 0) {
+      log.innerHTML = '<span class="log-info">Keine Bilder ausgewählt.</span>';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "⏳ Wird hochgeladen…";
+
+    let ok = 0, fail = 0;
+    for (const { file, sectionTitle, itemNr } of uploads) {
+      const filename = buildFilename(sectionTitle, itemNr, file);
+      log.innerHTML += `<div class="log-info">↑ ${filename} …</div>`;
+      try {
+        await uploadImageToSharePoint(file, filename); // kommt aus sharepoint.js
+        log.innerHTML += `<div class="log-ok">✅ ${filename}</div>`;
+        ok++;
+      } catch (err) {
+        log.innerHTML += `<div class="log-err">❌ ${filename}: ${err.message}</div>`;
+        fail++;
+      }
+    }
+
+    log.innerHTML += `<div class="log-info" style="margin-top:8px;font-weight:bold">${ok} erfolgreich, ${fail} fehlgeschlagen.</div>`;
+    btn.disabled = false;
+    btn.textContent = "Alle Bilder hochladen";
+  }
+
+  function buildFilename(sectionTitle, itemNr, originalFile) {
+    const safeTitle = sectionTitle.replace(/[/\\?%*:|"<> ]/g, "-"); // Sonderzeichen entfernen
+    const safeNr    = itemNr.replace(".", "").trim().padStart(2, "0");
+    const date      = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const ext       = originalFile.name.split(".").pop();
+    return `${safeTitle}_${safeNr}_${date}.${ext}`;
+    // Ergebnis z.B.: Fenster-Außentür_02_2026-04-27.jpg
   }
 
   function renderTitle(spec) {
@@ -201,14 +255,14 @@ const formSpec = {
     }
 
     const list = el("div", { class: "q-list" });
-    (section.items || []).forEach((item) => list.appendChild(renderQuestionsRow(item)));
+    (section.items || []).forEach((item) => list.appendChild(renderQuestionsRow(item, section.title)));
     list.appendChild(el("div", { class: "hr" }));
     wrap.appendChild(list);
 
     return wrap;
   }
 
-  function renderQuestionsRow(item){
+  function renderQuestionsRow(item, sectionTitle){
     const row = el("div", { class: "q-row" });
 
     // links: Nummer + Text
@@ -276,7 +330,7 @@ const formSpec = {
         const codesContainer = el("div", { class: "codes-container" });
 
         // Erste leere Zeile sofort einfügen
-        CheckAndAddMangel(item, codesContainer);
+        CheckAndAddMangel(item, codesContainer, sectionTitle);
 
         const setCodesVisible = () => {
           const show = noInput.checked;
@@ -320,7 +374,7 @@ const formSpec = {
     }
     return row;
   }
-  function CheckAndAddMangel(item, codesContainer) {
+  function CheckAndAddMangel(item, codesContainer, sectionTitle) {
     // Erstellt eine neue Zeile mit 4 Dropdowns
     const rowEl = el("div", { class: "codes" });
     const entryIndex = (item.codesList ??= []).length;
@@ -355,7 +409,7 @@ const formSpec = {
             filledCount++;
             // Erst beim ERSTEN ausgefüllten Dropdown dieser Zeile → neue Zeile anhängen
             if (filledCount === 1) {
-              CheckAndAddMangel(item, codesContainer);
+              CheckAndAddMangel(item, codesContainer, sectionTitle);
             }
           }
         }
@@ -365,8 +419,9 @@ const formSpec = {
     });
     const input = el("input", {class: "mangel-note"});
     input.placeholder = "Notiz";
-    const file_input = el("input",{class: "mangel-file",type:"file",accept: "image/*"});
-    file_input.placeholder = "datei upload";
+    const file_input = el("input", { class: "mangel-file", type: "file", accept: "image/*" });
+    file_input.dataset.sectionTitle = sectionTitle || "Unbekannt";
+    file_input.dataset.itemNr       = item.nr      || "00";
     const divider = el("div", { class: "mangel-divider" });
     rowEl.appendChild(input);
     rowEl.appendChild(file_input);
