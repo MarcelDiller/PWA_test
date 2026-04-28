@@ -35,7 +35,6 @@
 </div>
 <div id="upload-section">
   <button id="btn-upload" onclick="handleUpload()">Alles hochladen</button>
-  <div id="upload-log"></div>
 </div>
 <script>
 const formSpec = {
@@ -120,49 +119,47 @@ const formSpec = {
   const app = document.querySelector("#app");
 
   async function handleUpload() {
-   const log = document.getElementById("upload-log");
-    const btn = document.getElementById("btn-upload");
-    log.innerHTML = "";
+  const btn = document.getElementById("btn-upload");
 
-    // Alle file-inputs einsammeln
-    const inputs = document.querySelectorAll(".mangel-file");
-    const uploads = [];
+  const inputs = document.querySelectorAll(".mangel-file");
+  const uploads = [];
 
-    inputs.forEach(input => {
-      if (!input.files || input.files.length === 0) return;
-      uploads.push({
-        file: input.files[0],
-        sectionTitle: input.dataset.sectionTitle || "Unbekannt",
-        itemNr: input.dataset.itemNr || "00"
-      });
+  inputs.forEach(input => {
+    if (!input.files || input.files.length === 0) return;
+    uploads.push({
+      file: input.files[0],
+      sectionTitle: input.dataset.sectionTitle || "Unbekannt",
+      itemNr: input.dataset.itemNr || "00"
     });
+  });
 
-    if (uploads.length === 0) {
-      log.innerHTML = '<span class="log-info">Keine Bilder ausgewählt.</span>';
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = "⏳ Wird hochgeladen…";
-
-    let ok = 0, fail = 0;
-    for (const { file, sectionTitle, itemNr } of uploads) {
-      const filename = buildFilename(sectionTitle, itemNr, file);
-      log.innerHTML += `<div class="log-info">↑ ${filename} …</div>`;
-      try {
-        await uploadImageToSharePoint(file, filename); // kommt aus sharepoint.js
-        log.innerHTML += `<div class="log-ok">✅ ${filename}</div>`;
-        ok++;
-      } catch (err) {
-        log.innerHTML += `<div class="log-err">❌ ${filename}: ${err.message}</div>`;
-        fail++;
-      }
-    }
-
-    log.innerHTML += `<div class="log-info" style="margin-top:8px;font-weight:bold">${ok} erfolgreich, ${fail} fehlgeschlagen.</div>`;
-    btn.disabled = false;
-    btn.textContent = "Alle Bilder hochladen";
+  if (uploads.length === 0) {
+    console.log("Keine Bilder ausgewählt.");
+    return;
   }
+
+  btn.disabled = true;
+  btn.textContent = "⏳ Wird hochgeladen…";
+
+  let ok = 0, fail = 0;
+  for (const { file, sectionTitle, itemNr } of uploads) {
+    const filename = buildFilename(sectionTitle, itemNr, file);
+    console.log(`↑ ${filename} …`);
+
+    try {
+      await uploadImageToSharePoint(file, filename);
+      console.log(`✅ ${filename}`);
+      ok++;
+    } catch (err) {
+      console.error(`❌ ${filename}: ${err.message}`);
+      fail++;
+    }
+  }
+
+  console.log(`${ok} erfolgreich, ${fail} fehlgeschlagen.`);
+  btn.disabled = false;
+  btn.textContent = "Alle Bilder hochladen";
+}
 
   function buildFilename(sectionTitle, itemNr, originalFile) {
     const safeTitle = sectionTitle.replace(/[/\\?%*:|"<> ]/g, "-"); // Sonderzeichen entfernen
